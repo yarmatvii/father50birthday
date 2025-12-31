@@ -413,7 +413,6 @@
             [-1, 42], [81, 40], [-3, 64], [83, 66], [1, 76], [79, 76],
             [11, 18], [23, 18], [35, 18], [47, 18], [59, 18], [71, 18],
             [13, 90], [45, 90], [77, 90],
-            // manually added extra 6 positions
             [7, 60], [31, 72], [53, 80], [65, 50], [17, 40], [85, 20]
         ];
 
@@ -569,7 +568,7 @@
         // Create hero
         const hero = document.createElement('div');
         hero.id = 'hero';
-        hero.innerHTML = '<img src="https://images.unsplash.com/photo-1511988617509-a57c8a288659?w=600">';
+        hero.innerHTML = '<img src="photos/photo (52).jpg">';
         hero.onclick = () => {
             openMedia(hero, hero.querySelector('img').src, false);
             unlocked = true;
@@ -626,7 +625,7 @@
             });
 
             // Total media falling time
-            const mediaFallDuration = 9 + 1.2;
+            const mediaFallDuration = 0.8 + 1.2;
 
             // Hero starts immediately
             hero.classList.add('animate');
@@ -634,7 +633,7 @@
             // Show tap hint after hero lands (1600ms)
             setTimeout(() => {
                 tapHint.classList.add('show');
-            }, 10600);
+            }, 4800);
 
             // Caption falls ONLY AFTER all media elements finished
             setTimeout(() => {
