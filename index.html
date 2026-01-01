@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Happy Birthday</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <style>
         * {
             box-sizing: border-box
@@ -68,6 +69,7 @@
             z-index: 0;
             opacity: 0;
             pointer-events: none;
+            transition: opacity 1s;
         }
 
         #bg::before {
@@ -94,19 +96,21 @@
         .media {
             position: absolute;
             top: -40vh;
-            width: 32vw;
-            max-width: 180px;
+            width: 40vw;
+            max-width: 225px;
             aspect-ratio: 4/3;
             opacity: 0;
             transform: translate3d(0, 0, 0) scale(1.15);
-            filter: drop-shadow(0 18px 36px rgba(0, 0, 0, .85)) blur(8px);
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .6)) blur(6px);
             pointer-events: none;
             cursor: pointer;
-            transition: transform 0.2s, filter 0.6s;
+            transition: transform 0.2s, filter 0.5s;
+            will-change: transform, opacity;
         }
 
         .media.unlocked {
-            filter: drop-shadow(0 18px 36px rgba(0, 0, 0, .85)) blur(0px);
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .6)) blur(0px);
+            will-change: auto;
         }
 
         .media:active {
@@ -114,7 +118,7 @@
         }
 
         .media.unlocked:active {
-            filter: drop-shadow(0 8px 16px rgba(255, 0, 204, .8)) blur(0px);
+            filter: drop-shadow(0 4px 8px rgba(255, 0, 204, .6)) blur(0px);
         }
 
         .media img,
@@ -149,11 +153,18 @@
             z-index: 10;
             cursor: pointer;
             transition: transform 0.2s, filter 0.2s;
+            pointer-events: none;
+            will-change: transform, opacity;
+        }
+
+        #hero.clickable {
+            pointer-events: auto;
+            will-change: auto;
         }
 
         #hero:active {
             transform: translateX(-50%) scale(0.96);
-            filter: drop-shadow(0 12px 24px rgba(0, 204, 255, .9));
+            filter: drop-shadow(0 8px 16px rgba(0, 204, 255, .7));
         }
 
         #hero img {
@@ -252,10 +263,10 @@
 
         .spark {
             position: absolute;
-            width: 6px;
-            height: 6px;
+            width: 4px;
+            height: 4px;
             background: white;
-            animation: spark 1600ms ease-out forwards;
+            animation: spark 1200ms ease-out forwards;
         }
 
         @keyframes spark {
@@ -277,11 +288,11 @@
         }
 
         #overlayContent {
-            width: 75vw;
-            max-width: 520px;
+            width: 92vw;
+            max-width: 700px;
             aspect-ratio: 4/3;
             position: relative;
-            animation: overlayPop 0.4s cubic-bezier(.34, 1.56, .64, 1);
+            animation: overlayPop 0.3s cubic-bezier(.34, 1.56, .64, 1);
         }
 
         #overlayContent img,
@@ -289,13 +300,12 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            filter: drop-shadow(0 0 40px rgba(0, 204, 255, .6));
-            animation: overlayGlow 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 30px rgba(0, 204, 255, .5));
         }
 
         @keyframes overlayPop {
             from {
-                transform: scale(0.8);
+                transform: scale(0.85);
                 opacity: 0
             }
 
@@ -305,22 +315,10 @@
             }
         }
 
-        @keyframes overlayGlow {
-
-            0%,
-            100% {
-                filter: drop-shadow(0 0 40px rgba(0, 204, 255, .6))
-            }
-
-            50% {
-                filter: drop-shadow(0 0 60px rgba(255, 0, 204, .8))
-            }
-        }
-
         #close {
             position: absolute;
             top: -18px;
-            right: -18px;
+            right: -8px;
             width: 42px;
             height: 42px;
             background: #ff0055;
@@ -401,19 +399,19 @@
         let unlocked = false;
         let started = false;
 
-        // Predefined chaotic pile positions
+        // Predefined chaotic pile positions (moved up by 5%)
         const pilePositions = [
-            [1, 12], [9, 8], [19, 14], [29, 10], [41, 16], [53, 12], [65, 8], [77, 14],
-            [5, 22], [15, 26], [25, 22], [37, 26], [49, 22], [61, 26], [73, 22],
-            [1, 34], [13, 32], [23, 36], [35, 34], [47, 38], [59, 34], [71, 36],
-            [7, 46], [19, 44], [31, 48], [43, 46], [55, 50], [67, 46], [79, 48],
-            [3, 58], [15, 56], [27, 60], [39, 58], [51, 62], [63, 58], [75, 60],
-            [9, 70], [21, 68], [33, 72], [45, 70], [57, 74], [69, 70],
-            [5, 82], [19, 80], [33, 84], [47, 82], [61, 86], [75, 82],
-            [-1, 42], [81, 40], [-3, 64], [83, 66], [1, 76], [79, 76],
-            [11, 18], [23, 18], [35, 18], [47, 18], [59, 18], [71, 18],
-            [13, 90], [45, 90], [77, 90],
-            [7, 60], [31, 72], [53, 80], [65, 50], [17, 40], [85, 20]
+            [1, 7], [9, 3], [19, 9], [29, 5], [41, 11], [53, 7], [65, 3], [77, 9],
+            [5, 17], [15, 21], [25, 17], [37, 21], [49, 17], [61, 21], [73, 17],
+            [1, 29], [13, 27], [23, 31], [35, 29], [47, 33], [59, 29], [71, 31],
+            [7, 41], [19, 39], [31, 43], [43, 41], [55, 45], [67, 41], [79, 43],
+            [3, 53], [15, 51], [27, 55], [39, 53], [51, 57], [63, 53], [75, 55],
+            [9, 65], [21, 63], [33, 67], [45, 65], [57, 69], [69, 65],
+            [5, 77], [19, 75], [33, 79], [47, 77], [61, 81], [75, 77],
+            [-1, 37], [81, 35], [-3, 59], [83, 61], [1, 71], [79, 71],
+            [11, 13], [23, 13], [35, 13], [47, 13], [59, 13], [71, 13],
+            [13, 85], [45, 85], [77, 85],
+            [7, 55], [31, 67], [53, 75], [65, 45], [17, 35], [85, 15], [7, 85]
         ];
 
         // Mix of images and videos
@@ -428,6 +426,7 @@
             { url: "photos/photo (8).jpg", video: false },
             { url: "photos/photo (9).jpg", video: false },
             { url: "photos/photo (10).jpg", video: false },
+            { url: `photos/video1.mp4`, video: true },
 
             { url: "photos/photo (11).jpg", video: false },
             { url: "photos/photo (12).jpg", video: false },
@@ -450,6 +449,7 @@
             { url: "photos/photo (28).jpg", video: false },
             { url: "photos/photo (29).jpg", video: false },
             { url: "photos/photo (30).jpg", video: false },
+            { url: `photos/video2.mp4`, video: true },
 
             { url: "photos/photo (31).jpg", video: false },
             { url: "photos/photo (32).jpg", video: false },
@@ -472,6 +472,7 @@
             { url: "photos/photo (48).jpg", video: false },
             { url: "photos/photo (49).jpg", video: false },
             { url: "photos/photo (50).jpg", video: false },
+            { url: `photos/video3.mp4`, video: true },
 
             { url: "photos/photo (51).jpg", video: false },
             { url: "photos/photo (52).jpg", video: false },
@@ -490,9 +491,7 @@
             { url: "photos/photo (64).jpg", video: false },
             { url: "photos/photo (65).jpg", video: false },
             { url: "photos/photo (66).jpg", video: false },
-            { url: `https://videos.pexels.com/video-files/3571264/3571264-sd_640_360_30fps.mp4`, video: true },
-            { url: `https://videos.pexels.com/video-files/2491284/2491284-sd_640_360_30fps.mp4`, video: true },
-            { url: `https://videos.pexels.com/video-files/3044127/3044127-sd_640_360_30fps.mp4`, video: true }
+            { url: `photos/video4.mp4`, video: true }
         ];
 
         remaining = mediaSources.length + 1;
@@ -500,15 +499,16 @@
         function fireworks() {
             fwSound.currentTime = 0;
             fwSound.play();
-            for (let i = 0; i < 160; i++) {
+            // Reduced sparks for performance
+            for (let i = 0; i < 80; i++) {
                 const s = document.createElement('div');
                 s.className = 'spark';
                 s.style.left = Math.random() * 100 + '%';
                 s.style.top = Math.random() * 100 + '%';
-                s.style.setProperty('--dx', (Math.random() * 1000 - 500) + 'px');
-                s.style.setProperty('--dy', (Math.random() * -800) + 'px');
+                s.style.setProperty('--dx', (Math.random() * 800 - 400) + 'px');
+                s.style.setProperty('--dy', (Math.random() * -600) + 'px');
                 document.getElementById('fireworks').appendChild(s);
-                setTimeout(() => s.remove(), 1600);
+                setTimeout(() => s.remove(), 10200);
             }
         }
 
@@ -570,6 +570,9 @@
         hero.id = 'hero';
         hero.innerHTML = '<img src="photos/photo (52).jpg">';
         hero.onclick = () => {
+            // Only allow click if hero is clickable
+            if (!hero.classList.contains('clickable')) return;
+
             openMedia(hero, hero.querySelector('img').src, false);
             unlocked = true;
 
@@ -579,9 +582,10 @@
                 m.style.pointerEvents = 'auto';
             });
 
-            // Hide tap hint
+            // Hide tap hint immediately
             tapHint.classList.remove('show');
             tapHint.style.opacity = '0';
+            tapHint.style.display = 'none';
 
             bgm.volume = 0.55;
             bgm.play();
@@ -599,8 +603,8 @@
             if (started) return;
             started = true;
 
-            // Unlock all audio
-            [bgm, tap, fallSound, fwSound].forEach(a => {
+            // Unlock all audio EXCEPT fireworks (to prevent double play on iPhone)
+            [bgm, tap, fallSound].forEach(a => {
                 a.volume = 0.7;
                 a.play().then(() => a.pause()).catch(() => { });
             });
@@ -610,39 +614,45 @@
 
             // Start falling animations with individual sounds
             let delay = 0;
-            document.querySelectorAll('.media').forEach((d, index) => {
+            const mediaElements = document.querySelectorAll('.media');
+            mediaElements.forEach((d, index) => {
                 d.style.animationDelay = delay + 's';
                 d.classList.add('animate');
 
-                // Each tile plays fall sound when it LANDS (after delay + 1400ms animation)
+                // Each tile plays fall sound when it LANDS
                 setTimeout(() => {
                     const fall = new Audio('fall.mp3');
-                    fall.volume = 0.7;
+                    fall.volume = 0.5;
                     fall.play();
-                }, (delay + 0.05) * 1000);
+                }, (delay) * 1000);
 
-                delay += 0.3;
+                delay += 0.1;
             });
 
-            // Total media falling time
-            const mediaFallDuration = 0.8 + 1.2;
+            // Total media falling time: 69 items * 0.1s = 6.9s start + 1.4s animation = 8.3s finish
+            const totalFallingTime = (mediaElements.length * 0.1) + 1.4;
+            const mediaFallDuration = 7;
 
             // Hero starts immediately
             hero.classList.add('animate');
 
-            // Show tap hint after hero lands (1600ms)
+            // Show tap hint after hero lands + enable clicking
             setTimeout(() => {
                 tapHint.classList.add('show');
-            }, 4800);
+                hero.classList.add('clickable');
+            }, 9800);
 
             // Caption falls ONLY AFTER all media elements finished
             setTimeout(() => {
                 caption.classList.add('animate');
 
-                // Fireworks trigger when caption lands (900ms after caption starts)
+                // Fireworks trigger when caption lands
                 setTimeout(() => {
                     fireworks();
-                    bg.style.opacity = 1;
+                    // Start background animation only after all falling stops
+                    setTimeout(() => {
+                        bg.style.opacity = 1;
+                    }, 500);
                 }, 900);
             }, mediaFallDuration * 1000);
         });
