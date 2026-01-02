@@ -428,7 +428,6 @@
     <!-- AUDIO (your local files) -->
     <audio id="bgm" src="confessa.mp3" loop></audio>
     <audio id="tap" src="tap.mp3"></audio>
-    <audio id="fallSound" src="fall.mp3"></audio>
     <audio id="fwSound" src="fireworks.mp3"></audio>
 
     <script>
@@ -446,8 +445,6 @@
 
         const bgm = document.getElementById('bgm');
         const tap = document.getElementById('tap');
-        const fallSound = document.getElementById('fallSound');
-        fallSound.volume = 0.5;
         const fwSound = document.getElementById('fwSound');
 
         let remaining = 0;
@@ -567,7 +564,10 @@
                 overlay.style.display = 'none';
                 el.remove();
                 remaining--;
-                if (isVideo) bgm.play();
+                if (isVideo) {
+                    m.pause();
+                    bgm.play();
+                }
                 if (remaining === 0) {
                     refreshBtn.style.display = 'block';
                     tapHint.remove();
@@ -621,7 +621,7 @@
             if (started) return;
             started = true;
 
-            [bgm, tap, fallSound].forEach(a => {
+            [bgm, tap].forEach(a => {
                 a.volume = 0.7;
                 a.play().then(() => a.pause()).catch(() => { });
             });
@@ -637,11 +637,6 @@
                     d.classList.add('blurred');
                     d.style.willChange = 'auto';
                 }, (delay + 1.4) * 1000);
-
-                setTimeout(() => {
-                    fallSound.currentTime = 0;
-                    fallSound.play();
-                }, delay * 1000);
 
                 delay += 0.1;
             });
