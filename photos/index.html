@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Happy Birthday</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <style>
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            overscroll-behavior: none;
+            touch-action: none;
+            font-family: 'Orbitron', system-ui;
+        }
+
+        body {
+            background: #050508;
+            color: white
+        }
+
+        /* LOADING SCREEN */
+        #loadingScreen {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: #050508;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        #loadingText {
+            font-size: clamp(1.5rem, 6vw, 2.5rem);
+            font-weight: 800;
+            letter-spacing: .15em;
+            color: white;
+        }
+
+        #loadingBar {
+            width: 60vw;
+            max-width: 400px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        #loadingProgress {
+            height: 100%;
+            background: linear-gradient(90deg, #ff00cc, #00ccff);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* TAP OVERLAY */
+        #tapOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            background: rgba(5, 5, 8, 0.95);
+            backdrop-filter: blur(20px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        #tapOverlay div {
+            font-size: clamp(3rem, 12vw, 6rem);
+            font-weight: 800;
+            letter-spacing: .2em;
+            animation: tapPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes tapPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.8
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 1
+            }
+        }
+
+        #bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s;
+        }
+
+        #bg::before {
+            content: "";
+            position: absolute;
+            inset: -30%;
+            background: linear-gradient(120deg, #ff00cc, #00ccff, #ffcc00);
+            animation: bgmove 30s linear infinite;
+            opacity: .14;
+        }
+
+        @keyframes bgmove {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        #stage {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+        }
+
+        .media {
+            position: absolute;
+            top: -40vh;
+            width: 40vw;
+            max-width: 225px;
+            aspect-ratio: 4/3;
+            opacity: 0;
+            transform: translate3d(0, 0, 0) scale(1.15);
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .6));
+            pointer-events: none;
+            cursor: pointer;
+            transition: transform 0.2s, filter 0.5s;
+            will-change: auto;
+        }
+
+        .media.blurred {
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .6)) blur(6px);
+        }
+
+        .media.animate {
+            will-change: transform, opacity;
+        }
+
+        .media.unlocked {
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .6)) blur(0px);
+            will-change: auto;
+        }
+
+        .media:active {
+            transform: translate3d(0, 0, 0) scale(0.92);
+        }
+
+        .media.unlocked:active {
+            filter: drop-shadow(0 4px 8px rgba(255, 0, 204, .6)) blur(0px);
+        }
+
+        .media img,
+        .media video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover
+        }
+
+        .media.animate {
+            animation: fall 1400ms cubic-bezier(.2, .85, .25, 1) forwards;
+        }
+
+        @keyframes fall {
+            to {
+                top: var(--y);
+                left: var(--x);
+                transform: translate3d(0, 0, 0) scale(.95);
+                opacity: 1;
+            }
+        }
+
+        #hero {
+            position: absolute;
+            top: -50vh;
+            left: 50%;
+            width: 86vw;
+            max-width: 380px;
+            aspect-ratio: 4/3;
+            opacity: 0;
+            transform: translateX(-50%) scale(1.25);
+            z-index: 10;
+            cursor: pointer;
+            transition: transform 0.2s, filter 0.2s;
+            pointer-events: none;
+            will-change: transform, opacity;
+        }
+
+        #hero.clickable {
+            pointer-events: auto;
+            will-change: auto;
+        }
+
+        #hero:active {
+            transform: translateX(-50%) scale(0.96);
+            filter: drop-shadow(0 8px 16px rgba(0, 204, 255, .7));
+        }
+
+        #hero img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover
+        }
+
+        #hero.animate {
+            animation: fallHero 1600ms cubic-bezier(.2, .85, .25, 1) forwards;
+        }
+
+        @keyframes fallHero {
+            to {
+                top: 38%;
+                transform: translateX(-50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* TAP HINT ON HERO */
+        #tapHint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            font-weight: 800;
+            letter-spacing: .15em;
+            color: white;
+            text-shadow: 0 0 20px rgba(0, 204, 255, .8), 0 0 40px rgba(255, 0, 204, .6);
+            pointer-events: none;
+            opacity: 0;
+            z-index: 11;
+        }
+
+        #tapHint.show {
+            animation: hintPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes hintPulse {
+
+            0%,
+            100% {
+                opacity: 0.7;
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.15);
+            }
+        }
+
+        #caption {
+            position: absolute;
+            top: 64%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-weight: 800;
+            letter-spacing: .12em;
+            font-size: clamp(1.2rem, 5.5vw, 2rem);
+            opacity: 0;
+            z-index: 11;
+        }
+
+        #caption.animate {
+            animation: captionIn 900ms ease-out forwards, glow 2.8s ease-in-out infinite 0.9s;
+        }
+
+        @keyframes captionIn {
+            to {
+                opacity: 1
+            }
+        }
+
+        @keyframes glow {
+
+            0%,
+            100% {
+                text-shadow: 0 0 10px #ff00cc
+            }
+
+            50% {
+                text-shadow: 0 0 30px #00ccff
+            }
+        }
+
+        #fireworks {
+            position: fixed;
+            inset: -25%;
+            z-index: 12;
+            pointer-events: none;
+        }
+
+        .spark {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            animation: spark 1200ms ease-out forwards;
+        }
+
+        @keyframes spark {
+            to {
+                transform: translate(var(--dx), var(--dy)) scale(0);
+                opacity: 0
+            }
+        }
+
+        #overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, .75);
+            backdrop-filter: blur(14px);
+            z-index: 100;
+        }
+
+        #overlayContent {
+            width: 92vw;
+            max-width: 700px;
+            aspect-ratio: 4/3;
+            position: relative;
+            animation: overlayPop 0.3s cubic-bezier(.34, 1.56, .64, 1);
+        }
+
+        #overlayContent img,
+        #overlayContent video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 30px rgba(0, 204, 255, .5));
+        }
+
+        @keyframes overlayPop {
+            from {
+                transform: scale(0.85);
+                opacity: 0
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1
+            }
+        }
+
+        #close {
+            position: absolute;
+            top: -18px;
+            right: -8px;
+            width: 42px;
+            height: 42px;
+            background: #ff0055;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            z-index: 101;
+        }
+
+        #close:active {
+            transform: scale(0.9);
+        }
+
+        #refresh {
+            position: absolute;
+            bottom: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 14px 32px;
+            background: white;
+            color: black;
+            font-size: 1rem;
+            display: none;
+            z-index: 200;
+            cursor: pointer;
+            font-weight: 800;
+            letter-spacing: .08em;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(255, 255, 255, .3);
+        }
+
+        #refresh:active {
+            transform: translateX(-50%) scale(0.95);
+            box-shadow: 0 2px 10px rgba(255, 255, 255, .5);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loadingScreen">
+        <div id="loadingText">ЗАВАНТАЖЕННЯ...</div>
+        <div id="loadingBar">
+            <div id="loadingProgress"></div>
+        </div>
+    </div>
+    <div id="tapOverlay">
+        <div>НАТИСНИ</div>
+    </div>
+    <div id="bg"></div>
+    <div id="stage"></div>
+    <div id="tapHint">НАТИСНИ</div>
+    <div id="fireworks"></div>
+    <div id="overlay">
+        <div id="overlayContent">
+            <div id="close">✕</div>
+        </div>
+    </div>
+    <div id="refresh">ПЕРЕЗАВАНТАЖИТИ</div>
+
+    <!-- AUDIO (your local files) -->
+    <audio id="bgm" src="confessa.mp3" loop></audio>
+    <audio id="tap" src="tap.mp3"></audio>
+    <audio id="fwSound" src="fireworks.mp3"></audio>
+    <audio id="fall" src="fall.mp3"></audio>
+
+    <script>
+        /* ===================== ELEMENTS ===================== */
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loadingProgress = document.getElementById('loadingProgress');
+        const tapOverlay = document.getElementById('tapOverlay');
+        const stage = document.getElementById('stage');
+        const bg = document.getElementById('bg');
+        const overlay = document.getElementById('overlay');
+        const overlayContent = document.getElementById('overlayContent');
+        const closeBtn = document.getElementById('close');
+        const refreshBtn = document.getElementById('refresh');
+        const tapHint = document.getElementById('tapHint');
+
+        const bgm = document.getElementById('bgm');
+        const tap = document.getElementById('tap');
+        const fwSound = document.getElementById('fwSound');
+        const fall = document.getElementById('fall');
+
+        let remaining = 0;
+        let unlocked = false;
+        let started = false;
+
+        /* ===================== POSITIONS ===================== */
+        const pilePositions = [
+            [1, 7], [9, 3], [19, 9], [29, 5], [41, 11], [53, 7], [65, 3], [77, 9],
+            [5, 17], [15, 21], [25, 17], [37, 21], [49, 17], [61, 21], [73, 17],
+            [1, 29], [13, 27], [23, 31], [35, 29], [47, 33], [59, 29], [71, 31],
+            [7, 41], [19, 39], [31, 43], [43, 41], [55, 45], [67, 41], [79, 43],
+            [3, 53], [15, 51], [27, 55], [39, 53], [51, 57], [63, 53], [75, 55],
+            [9, 65], [21, 63], [33, 67], [45, 65], [57, 69], [69, 65],
+            [5, 77], [19, 75], [33, 79], [47, 77], [61, 81], [75, 77],
+            [-1, 37], [81, 35], [-3, 59], [83, 61], [1, 71], [79, 71],
+            [11, 13], [23, 13], [35, 13], [47, 13], [59, 13], [71, 13],
+            [13, 85], [45, 85], [77, 85],
+            [7, 55], [31, 67], [53, 75], [65, 45], [17, 35], [85, 15], [7, 85]
+        ];
+
+        /* ===================== MEDIA ===================== */
+        const mediaSources = [
+            ...Array.from({ length: 66 }, (_, i) => ({
+                url: `photos/photo (${i + 1}).jpg`,
+                video: false
+            })),
+            { url: "photos/video1.MP4", video: true },
+            { url: "photos/video2.MP4", video: true },
+            { url: "photos/video3.MP4", video: true },
+            { url: "photos/video4.mp4", video: true }
+        ];
+
+        remaining = mediaSources.length + 1;
+
+        /* ===================== LOADER ===================== */
+        let loaded = 0;
+        const total = mediaSources.length;
+        let finished = false;
+
+        function assetDone() {
+            if (finished) return;
+            loaded++;
+            loadingProgress.style.width =
+                Math.round((loaded / total) * 100) + '%';
+            if (loaded >= total) finishLoading();
+        }
+
+        function finishLoading() {
+            if (finished) return;
+            finished = true;
+
+            // FORCE DECODE BEFORE ANY ANIMATION
+            document.querySelectorAll('.media img').forEach(img => {
+                if (img.decode) img.decode().catch(() => { });
+            });
+
+            loadingScreen.style.display = 'none';
+            tapOverlay.style.display = 'flex';
+        }
+
+        /* HARD FAILSAFE */
+        setTimeout(finishLoading, 8000);
+
+        /* PRELOAD */
+        mediaSources.forEach(item => {
+            if (item.video) {
+                const v = document.createElement('video');
+                v.src = item.url;
+                v.preload = 'metadata';
+                v.onloadeddata = assetDone;
+                v.onerror = assetDone;
+            } else {
+                const img = new Image();
+                img.src = item.url;
+                img.onload = assetDone;
+                img.onerror = assetDone;
+            }
+        });
+
+        /* ===================== FIREWORKS ===================== */
+        function fireworks() {
+            fwSound.currentTime = 0;
+            fwSound.play();
+            for (let i = 0; i < 80; i++) {
+                const s = document.createElement('div');
+                s.className = 'spark';
+                s.style.left = Math.random() * 100 + '%';
+                s.style.top = Math.random() * 100 + '%';
+                s.style.setProperty('--dx', (Math.random() * 800 - 400) + 'px');
+                s.style.setProperty('--dy', (Math.random() * -600) + 'px');
+                document.getElementById('fireworks').appendChild(s);
+                setTimeout(() => s.remove(), 1200);
+            }
+        }
+
+        /* ===================== OPEN MEDIA ===================== */
+        function openMedia(el, src, isVideo) {
+            if (!unlocked && el.id !== 'hero') return;
+
+            tap.currentTime = 0;
+            tap.play();
+
+            overlayContent.querySelectorAll('img,video').forEach(e => e.remove());
+            overlay.style.display = 'flex';
+
+            const m = isVideo ? document.createElement('video') : document.createElement('img');
+            m.src = src;
+            if (isVideo) {
+                m.controls = true;
+                m.autoplay = true;
+                bgm.pause();
+            }
+            overlayContent.appendChild(m);
+
+            closeBtn.onclick = () => {
+                overlay.style.display = 'none';
+                el.remove();
+                remaining--;
+                if (isVideo) {
+                    m.pause();
+                    bgm.play();
+                }
+                if (remaining === 0) {
+                    refreshBtn.style.display = 'block';
+                    tapHint.remove();
+                }
+            };
+        }
+
+        /* ===================== BUILD STAGE ===================== */
+        mediaSources.forEach((item, i) => {
+            const d = document.createElement('div');
+            d.className = 'media';
+            const [x, y] = pilePositions[i];
+            d.style.setProperty('--x', x + '%');
+            d.style.setProperty('--y', y + '%');
+
+            const el = item.video ? document.createElement('video') : document.createElement('img');
+            el.src = item.url;
+            if (item.video) el.muted = true;
+
+            d.appendChild(el);
+            d.onclick = () => openMedia(d, item.url, item.video);
+            stage.appendChild(d);
+        });
+
+        /* HERO */
+        const hero = document.createElement('div');
+        hero.id = 'hero';
+        hero.innerHTML = '<img src="photos/photo (52).jpg">';
+        hero.onclick = () => {
+            if (!hero.classList.contains('clickable')) return;
+            openMedia(hero, hero.querySelector('img').src, false);
+            unlocked = true;
+            document.querySelectorAll('.media').forEach(m => {
+                m.classList.add('unlocked');
+                m.style.pointerEvents = 'auto';
+            });
+            tapHint.remove();
+            bgm.volume = 0.55;
+            bgm.play();
+        };
+        stage.appendChild(hero);
+
+        /* CAPTION */
+        const caption = document.createElement('div');
+        caption.id = 'caption';
+        caption.textContent = 'ХЕПІ БЬОЗДЕЙ!';
+        stage.appendChild(caption);
+
+        /* ===================== START ===================== */
+        tapOverlay.addEventListener('click', () => {
+            if (started) return;
+            started = true;
+            fall.play();
+
+            tapOverlay.style.display = 'none';
+
+            let delay = 0;
+            document.querySelectorAll('.media').forEach(d => {
+                d.style.animationDelay = delay + 's';
+                d.classList.add('animate');
+
+                setTimeout(() => {
+                    d.classList.add('blurred');
+                    d.style.willChange = 'auto';
+                }, (delay + 1.4) * 1000);
+
+                delay += 0.07;
+            });
+
+            hero.classList.add('animate');
+
+            setTimeout(() => {
+                tapHint.classList.add('show');
+                hero.classList.add('clickable');
+            }, 8000);
+
+            setTimeout(() => {
+                caption.classList.add('animate');
+                setTimeout(() => {
+                    fireworks();
+                    setTimeout(() => bg.style.opacity = 1, 500);
+                }, 900);
+            }, 6000);
+        });
+
+        refreshBtn.onclick = () => location.reload();
+    </script>
+
+</body>
+
+</html>
