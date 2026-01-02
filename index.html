@@ -29,6 +29,42 @@
             color: white
         }
 
+        /* LOADING SCREEN */
+        #loadingScreen {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: #050508;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        #loadingText {
+            font-size: clamp(1.5rem, 6vw, 2.5rem);
+            font-weight: 800;
+            letter-spacing: .15em;
+            color: white;
+        }
+
+        #loadingBar {
+            width: 60vw;
+            max-width: 400px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        #loadingProgress {
+            height: 100%;
+            background: linear-gradient(90deg, #ff00cc, #00ccff);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
         /* TAP OVERLAY */
         #tapOverlay {
             position: fixed;
@@ -36,7 +72,7 @@
             z-index: 999;
             background: rgba(5, 5, 8, 0.95);
             backdrop-filter: blur(20px);
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             cursor: pointer;
@@ -361,6 +397,12 @@
 </head>
 
 <body>
+    <div id="loadingScreen">
+        <div id="loadingText">ЗАВАНТАЖЕННЯ...</div>
+        <div id="loadingBar">
+            <div id="loadingProgress"></div>
+        </div>
+    </div>
     <div id="tapOverlay">
         <div>НАТИСНИ</div>
     </div>
@@ -382,6 +424,9 @@
     <audio id="fwSound" src="fireworks.mp3"></audio>
 
     <script>
+        /* ===================== ELEMENTS ===================== */
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loadingProgress = document.getElementById('loadingProgress');
         const tapOverlay = document.getElementById('tapOverlay');
         const stage = document.getElementById('stage');
         const bg = document.getElementById('bg');
@@ -390,6 +435,7 @@
         const closeBtn = document.getElementById('close');
         const refreshBtn = document.getElementById('refresh');
         const tapHint = document.getElementById('tapHint');
+
         const bgm = document.getElementById('bgm');
         const tap = document.getElementById('tap');
         const fallSound = document.getElementById('fallSound');
@@ -399,7 +445,7 @@
         let unlocked = false;
         let started = false;
 
-        // Predefined chaotic pile positions (moved up by 5%)
+        /* ===================== POSITIONS ===================== */
         const pilePositions = [
             [1, 7], [9, 3], [19, 9], [29, 5], [41, 11], [53, 7], [65, 3], [77, 9],
             [5, 17], [15, 21], [25, 17], [37, 21], [49, 17], [61, 21], [73, 17],
@@ -414,92 +460,63 @@
             [7, 55], [31, 67], [53, 75], [65, 45], [17, 35], [85, 15], [7, 85]
         ];
 
-        // Mix of images and videos
+        /* ===================== MEDIA ===================== */
         const mediaSources = [
-            { url: "photos/photo (1).jpg", video: false },
-            { url: "photos/photo (2).jpg", video: false },
-            { url: "photos/photo (3).jpg", video: false },
-            { url: "photos/photo (4).jpg", video: false },
-            { url: "photos/photo (5).jpg", video: false },
-            { url: "photos/photo (6).jpg", video: false },
-            { url: "photos/photo (7).jpg", video: false },
-            { url: "photos/photo (8).jpg", video: false },
-            { url: "photos/photo (9).jpg", video: false },
-            { url: "photos/photo (10).jpg", video: false },
-            { url: `photos/video1.mp4`, video: true },
-
-            { url: "photos/photo (11).jpg", video: false },
-            { url: "photos/photo (12).jpg", video: false },
-            { url: "photos/photo (13).jpg", video: false },
-            { url: "photos/photo (14).jpg", video: false },
-            { url: "photos/photo (15).jpg", video: false },
-            { url: "photos/photo (16).jpg", video: false },
-            { url: "photos/photo (17).jpg", video: false },
-            { url: "photos/photo (18).jpg", video: false },
-            { url: "photos/photo (19).jpg", video: false },
-            { url: "photos/photo (20).jpg", video: false },
-
-            { url: "photos/photo (21).jpg", video: false },
-            { url: "photos/photo (22).jpg", video: false },
-            { url: "photos/photo (23).jpg", video: false },
-            { url: "photos/photo (24).jpg", video: false },
-            { url: "photos/photo (25).jpg", video: false },
-            { url: "photos/photo (26).jpg", video: false },
-            { url: "photos/photo (27).jpg", video: false },
-            { url: "photos/photo (28).jpg", video: false },
-            { url: "photos/photo (29).jpg", video: false },
-            { url: "photos/photo (30).jpg", video: false },
-            { url: `photos/video2.mp4`, video: true },
-
-            { url: "photos/photo (31).jpg", video: false },
-            { url: "photos/photo (32).jpg", video: false },
-            { url: "photos/photo (33).jpg", video: false },
-            { url: "photos/photo (34).jpg", video: false },
-            { url: "photos/photo (35).jpg", video: false },
-            { url: "photos/photo (36).jpg", video: false },
-            { url: "photos/photo (37).jpg", video: false },
-            { url: "photos/photo (38).jpg", video: false },
-            { url: "photos/photo (39).jpg", video: false },
-            { url: "photos/photo (40).jpg", video: false },
-
-            { url: "photos/photo (41).jpg", video: false },
-            { url: "photos/photo (42).jpg", video: false },
-            { url: "photos/photo (43).jpg", video: false },
-            { url: "photos/photo (44).jpg", video: false },
-            { url: "photos/photo (45).jpg", video: false },
-            { url: "photos/photo (46).jpg", video: false },
-            { url: "photos/photo (47).jpg", video: false },
-            { url: "photos/photo (48).jpg", video: false },
-            { url: "photos/photo (49).jpg", video: false },
-            { url: "photos/photo (50).jpg", video: false },
-            { url: `photos/video3.mp4`, video: true },
-
-            { url: "photos/photo (51).jpg", video: false },
-            { url: "photos/photo (52).jpg", video: false },
-            { url: "photos/photo (53).jpg", video: false },
-            { url: "photos/photo (54).jpg", video: false },
-            { url: "photos/photo (55).jpg", video: false },
-            { url: "photos/photo (56).jpg", video: false },
-            { url: "photos/photo (57).jpg", video: false },
-            { url: "photos/photo (58).jpg", video: false },
-            { url: "photos/photo (59).jpg", video: false },
-            { url: "photos/photo (60).jpg", video: false },
-
-            { url: "photos/photo (61).jpg", video: false },
-            { url: "photos/photo (62).jpg", video: false },
-            { url: "photos/photo (63).jpg", video: false },
-            { url: "photos/photo (64).jpg", video: false },
-            { url: "photos/photo (65).jpg", video: false },
-            { url: "photos/photo (66).jpg", video: false },
-            { url: `photos/video4.mp4`, video: true }
+            ...Array.from({ length: 66 }, (_, i) => ({
+                url: `photos/photo (${i + 1}).jpg`,
+                video: false
+            })),
+            { url: "photos/video1.mp4", video: true },
+            { url: "photos/video2.mp4", video: true },
+            { url: "photos/video3.mp4", video: true },
+            { url: "photos/video4.mp4", video: true }
         ];
 
         remaining = mediaSources.length + 1;
 
+        /* ===================== LOADER ===================== */
+        let loaded = 0;
+        const total = mediaSources.length;
+        let finished = false;
+
+        function assetDone() {
+            if (finished) return;
+            loaded++;
+            loadingProgress.style.width =
+                Math.round((loaded / total) * 100) + '%';
+            if (loaded >= total) finishLoading();
+        }
+
+        function finishLoading() {
+            if (finished) return;
+            finished = true;
+            loadingScreen.style.display = 'none';
+            tapOverlay.style.display = 'flex';
+        }
+
+        /* HARD FAILSAFE */
+        setTimeout(finishLoading, 8000);
+
+        /* PRELOAD */
+        mediaSources.forEach(item => {
+            if (item.video) {
+                const v = document.createElement('video');
+                v.src = item.url;
+                v.preload = 'metadata';
+                v.onloadeddata = assetDone;
+                v.onerror = assetDone;
+            } else {
+                const img = new Image();
+                img.src = item.url;
+                img.onload = assetDone;
+                img.onerror = assetDone;
+            }
+        });
+
+        /* ===================== FIREWORKS ===================== */
         function fireworks() {
             fwSound.currentTime = 0;
             fwSound.play();
-            // Reduced sparks for performance
             for (let i = 0; i < 80; i++) {
                 const s = document.createElement('div');
                 s.className = 'spark';
@@ -508,10 +525,11 @@
                 s.style.setProperty('--dx', (Math.random() * 800 - 400) + 'px');
                 s.style.setProperty('--dy', (Math.random() * -600) + 'px');
                 document.getElementById('fireworks').appendChild(s);
-                setTimeout(() => s.remove(), 10200);
+                setTimeout(() => s.remove(), 1200);
             }
         }
 
+        /* ===================== OPEN MEDIA ===================== */
         function openMedia(el, src, isVideo) {
             if (!unlocked && el.id !== 'hero') return;
 
@@ -519,12 +537,7 @@
             tap.play();
 
             overlayContent.querySelectorAll('img,video').forEach(e => e.remove());
-
-            // Reset animation by forcing reflow
             overlay.style.display = 'flex';
-            overlayContent.style.animation = 'none';
-            overlayContent.offsetHeight; // trigger reflow
-            overlayContent.style.animation = '';
 
             const m = isVideo ? document.createElement('video') : document.createElement('img');
             m.src = src;
@@ -539,9 +552,7 @@
                 overlay.style.display = 'none';
                 el.remove();
                 remaining--;
-                if (isVideo) {
-                    bgm.play();
-                }
+                if (isVideo) bgm.play();
                 if (remaining === 0) {
                     refreshBtn.style.display = 'block';
                     tapHint.remove();
@@ -549,7 +560,7 @@
             };
         }
 
-        // Create all media tiles (but don't animate yet)
+        /* ===================== BUILD STAGE ===================== */
         mediaSources.forEach((item, i) => {
             const d = document.createElement('div');
             d.className = 'media';
@@ -560,105 +571,79 @@
             const el = item.video ? document.createElement('video') : document.createElement('img');
             el.src = item.url;
             if (item.video) el.muted = true;
+
             d.appendChild(el);
             d.onclick = () => openMedia(d, item.url, item.video);
             stage.appendChild(d);
         });
 
-        // Create hero
+        /* HERO */
         const hero = document.createElement('div');
         hero.id = 'hero';
         hero.innerHTML = '<img src="photos/photo (52).jpg">';
         hero.onclick = () => {
-            // Only allow click if hero is clickable
             if (!hero.classList.contains('clickable')) return;
-
             openMedia(hero, hero.querySelector('img').src, false);
             unlocked = true;
-
-            // Remove blur from all media
             document.querySelectorAll('.media').forEach(m => {
                 m.classList.add('unlocked');
                 m.style.pointerEvents = 'auto';
             });
-
-            // Hide tap hint immediately
-            tapHint.classList.remove('show');
-            tapHint.style.opacity = '0';
-            tapHint.style.display = 'none';
-
+            tapHint.remove();
             bgm.volume = 0.55;
             bgm.play();
         };
         stage.appendChild(hero);
 
-        // Create caption
+        /* CAPTION */
         const caption = document.createElement('div');
         caption.id = 'caption';
         caption.textContent = 'ХЕПІ БЬОЗДЕЙ!';
         stage.appendChild(caption);
 
-        // TAP OVERLAY - starts everything
+        /* ===================== START ===================== */
         tapOverlay.addEventListener('click', () => {
             if (started) return;
             started = true;
 
-            // Unlock all audio EXCEPT fireworks (to prevent double play on iPhone)
             [bgm, tap, fallSound].forEach(a => {
                 a.volume = 0.7;
                 a.play().then(() => a.pause()).catch(() => { });
             });
 
-            // Remove tap overlay
             tapOverlay.style.display = 'none';
 
-            // Start falling animations with individual sounds
             let delay = 0;
-            const mediaElements = document.querySelectorAll('.media');
-            mediaElements.forEach((d, index) => {
+            document.querySelectorAll('.media').forEach(d => {
                 d.style.animationDelay = delay + 's';
                 d.classList.add('animate');
-
-                // Each tile plays fall sound when it LANDS
                 setTimeout(() => {
                     const fall = new Audio('fall.mp3');
                     fall.volume = 0.5;
                     fall.play();
-                }, (delay) * 1000);
-
+                }, delay * 1000);
                 delay += 0.1;
             });
 
-            // Total media falling time: 69 items * 0.1s = 6.9s start + 1.4s animation = 8.3s finish
-            const totalFallingTime = (mediaElements.length * 0.1) + 1.4;
-            const mediaFallDuration = 7;
-
-            // Hero starts immediately
             hero.classList.add('animate');
 
-            // Show tap hint after hero lands + enable clicking
             setTimeout(() => {
                 tapHint.classList.add('show');
                 hero.classList.add('clickable');
             }, 9800);
 
-            // Caption falls ONLY AFTER all media elements finished
             setTimeout(() => {
                 caption.classList.add('animate');
-
-                // Fireworks trigger when caption lands
                 setTimeout(() => {
                     fireworks();
-                    // Start background animation only after all falling stops
-                    setTimeout(() => {
-                        bg.style.opacity = 1;
-                    }, 500);
+                    setTimeout(() => bg.style.opacity = 1, 500);
                 }, 900);
-            }, mediaFallDuration * 1000);
+            }, 7000);
         });
 
         refreshBtn.onclick = () => location.reload();
     </script>
+
 </body>
 
 </html>
