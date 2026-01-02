@@ -447,6 +447,7 @@
         const bgm = document.getElementById('bgm');
         const tap = document.getElementById('tap');
         const fallSound = document.getElementById('fallSound');
+        fallSound.volume = 0.5;
         const fwSound = document.getElementById('fwSound');
 
         let remaining = 0;
@@ -631,13 +632,17 @@
             document.querySelectorAll('.media').forEach(d => {
                 d.style.animationDelay = delay + 's';
                 d.classList.add('animate');
+
                 setTimeout(() => {
                     d.classList.add('blurred');
                     d.style.willChange = 'auto';
-                    const fall = new Audio('fall.mp3');
-                    fall.volume = 0.5;
-                    fall.play();
+                }, (delay + 1.4) * 1000);
+
+                setTimeout(() => {
+                    fallSound.currentTime = 0;
+                    fallSound.play();
                 }, delay * 1000);
+
                 delay += 0.1;
             });
 
