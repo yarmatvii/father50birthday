@@ -137,10 +137,18 @@
             aspect-ratio: 4/3;
             opacity: 0;
             transform: translate3d(0, 0, 0) scale(1.15);
-            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .6)) blur(6px);
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .6));
             pointer-events: none;
             cursor: pointer;
             transition: transform 0.2s, filter 0.5s;
+            will-change: auto;
+        }
+
+        .media.blurred {
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .6)) blur(6px);
+        }
+
+        .media.animate {
             will-change: transform, opacity;
         }
 
@@ -490,6 +498,12 @@
         function finishLoading() {
             if (finished) return;
             finished = true;
+
+            // FORCE DECODE BEFORE ANY ANIMATION
+            document.querySelectorAll('.media img').forEach(img => {
+                if (img.decode) img.decode().catch(() => { });
+            });
+
             loadingScreen.style.display = 'none';
             tapOverlay.style.display = 'flex';
         }
@@ -618,6 +632,8 @@
                 d.style.animationDelay = delay + 's';
                 d.classList.add('animate');
                 setTimeout(() => {
+                    d.classList.add('blurred');
+                    d.style.willChange = 'auto';
                     const fall = new Audio('fall.mp3');
                     fall.volume = 0.5;
                     fall.play();
