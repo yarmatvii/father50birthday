@@ -474,9 +474,9 @@
                 url: `photos/photo (${i + 1}).jpg`,
                 video: false
             })),
-            { url: "photos/video1.mp4", video: true },
-            { url: "photos/video2.mp4", video: true },
-            { url: "photos/video3.mp4", video: true },
+            { url: "photos/video1.MP4", video: true },
+            { url: "photos/video2.MP4", video: true },
+            { url: "photos/video3.MP4", video: true },
             { url: "photos/video4.mp4", video: true }
         ];
 
@@ -587,7 +587,11 @@
 
             const el = item.video ? document.createElement('video') : document.createElement('img');
             el.src = item.url;
-            if (item.video) el.muted = true;
+            if (item.video) {
+                el.muted = true;
+                el.playsInline = true; // Essential for iOS
+                el.preload = "metadata"; // Tells the phone to load the first frame
+            }
 
             d.appendChild(el);
             d.onclick = () => openMedia(d, item.url, item.video);
