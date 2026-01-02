@@ -429,6 +429,7 @@
     <audio id="bgm" src="confessa.mp3" loop></audio>
     <audio id="tap" src="tap.mp3"></audio>
     <audio id="fwSound" src="fireworks.mp3"></audio>
+    <audio id="fall" src="fall.mp3"></audio>
 
     <script>
         /* ===================== ELEMENTS ===================== */
@@ -446,6 +447,7 @@
         const bgm = document.getElementById('bgm');
         const tap = document.getElementById('tap');
         const fwSound = document.getElementById('fwSound');
+        const fall = document.getElementById('fall');
 
         let remaining = 0;
         let unlocked = false;
@@ -620,8 +622,9 @@
         tapOverlay.addEventListener('click', () => {
             if (started) return;
             started = true;
+            fall.play();
 
-            [bgm, tap].forEach(a => {
+            [bgm, tap, fwSound].forEach(a => {
                 a.volume = 0.7;
                 a.play().then(() => a.pause()).catch(() => { });
             });
@@ -638,7 +641,7 @@
                     d.style.willChange = 'auto';
                 }, (delay + 1.4) * 1000);
 
-                delay += 0.1;
+                delay += 0.07;
             });
 
             hero.classList.add('animate');
@@ -646,7 +649,7 @@
             setTimeout(() => {
                 tapHint.classList.add('show');
                 hero.classList.add('clickable');
-            }, 9800);
+            }, 8000);
 
             setTimeout(() => {
                 caption.classList.add('animate');
@@ -654,7 +657,7 @@
                     fireworks();
                     setTimeout(() => bg.style.opacity = 1, 500);
                 }, 900);
-            }, 7000);
+            }, 6000);
         });
 
         refreshBtn.onclick = () => location.reload();
