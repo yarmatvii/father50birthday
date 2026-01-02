@@ -624,11 +624,6 @@
             started = true;
             fall.play();
 
-            [bgm, tap, fwSound].forEach(a => {
-                a.volume = 0.7;
-                a.play().then(() => a.pause()).catch(() => { });
-            });
-
             tapOverlay.style.display = 'none';
 
             let delay = 0;
